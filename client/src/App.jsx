@@ -1,9 +1,10 @@
 import "./App.css";
+import LoginPage from "./components/LoginPage";
 
 function App() {
   return (
-    <div className="text-3xl font-bold underline">
-      <h1>Welcome mr</h1>
+    <div>
+      <LoginPage />
     </div>
   );
 }

@@ -1,0 +1,1 @@
+export const CLIENT_KEY = "378180196511-jfl5v7k6n4vmv4cfdmndeqb1g8juo232.apps.googleusercontent.com"
