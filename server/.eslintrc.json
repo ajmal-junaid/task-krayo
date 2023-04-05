@@ -1,0 +1,20 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": "airbnb",
+    "overrides": [
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "script"
+    },
+    "rules": {
+        "no-console": "off",
+        "no-underscore-dangle": ["error", { "allowAfterThis": true, "allow": ["_id"] }],
+        "import/extensions": "off",
+        "import/no-extraneous-dependencies": "off"
+    }
+}
