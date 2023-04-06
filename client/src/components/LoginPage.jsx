@@ -1,11 +1,18 @@
 import React from "react";
-import { GoogleLoginButton } from "react-social-login-buttons";
-import { LoginSocialGoogle } from "reactjs-social-login";
-import { CLIENT_KEY } from "../constants";
+import { GoogleLogin } from "@react-oauth/google";
+import Swal from "sweetalert2";
+import instance from "../utils/axios";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const handleLogin = (provider, data) => {
-    console.log(data, "provider");
+  const navigate = useNavigate()
+  const handleLogin = (provider) => {
+    instance.post("/signin", provider).then((res) => {
+      navigate('/home')
+    })
+      .catch((err)=>{
+      console.log("err",err);
+    })
   };
   return (
     <>
@@ -16,23 +23,17 @@ const LoginPage = () => {
           </h1>
         </div>
       </header>
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+      <div className="flex flex-col items-center pt-32 h-screen bg-gray-100">
         <div className="space-y-4 border border-black">
-          <LoginSocialGoogle
-            client_id={CLIENT_KEY}
-            scope="openid profile email"
-            discoveryDocs="claims_supported"
-            access_type="offline"
-            onResolve={({ provider, data }) => {
-              // console.log(provider, "porvedfd+", data);
-              handleLogin(provider, data);
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              handleLogin(credentialResponse);
+              new Swal("success", "login success", "success");
             }}
-            onReject={(err) => {
-              console.log(err);
+            onError={() => {
+              console.log("Login Failed");
             }}
-          >
-            <GoogleLoginButton />
-          </LoginSocialGoogle>
+          />
         </div>
       </div>
     </>
