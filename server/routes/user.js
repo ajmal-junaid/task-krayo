@@ -16,7 +16,7 @@ router.post('/signin', async (req, res) => {
 });
 
 router.post('/upload-file', upload.single('file'), (req, res) => {
-  console.log(req);
+  console.log( req.file);
   res.status(200).json({ message: 'okkkk' });
 });
 module.exports = router;

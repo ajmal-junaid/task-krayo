@@ -1,18 +1,31 @@
 import React, { useState } from "react";
-
+import Swal from "sweetalert2";
+import instance from "../utils/axios";
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileList, setFileList] = useState([]);
+  const formData = new FormData();
 
   const handleFileInputChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };
 
   const handleFileSubmit = () => {
+    formData.append("file", selectedFile);
     if (selectedFile) {
       setFileList([...fileList, selectedFile]);
       setSelectedFile(null);
     }
+    instance
+      .post("/upload-file", formData)
+      .then((res) => {
+        console.log(res, "successs", formData);
+        new Swal("success", res.data.message, "success");
+      })
+      .catch((err) => {
+        new Swal("failed", err.response.data.message, "error");
+        console.log("err", err);
+      });
   };
   return (
     <div className="flex flex-col h-screen">
@@ -24,6 +37,7 @@ const Home = () => {
           <div className="flex gap-2">
             <input
               type="file"
+              name="file"
               accept=".jpg,.jpeg,.png,.gif"
               onChange={handleFileInputChange}
             />
