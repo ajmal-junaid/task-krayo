@@ -1,5 +1,6 @@
 const express = require('express');
 const { verify } = require('../controllers/authentication');
+const { upload } = require('../utils/multer');
 
 const router = express.Router();
 
@@ -12,5 +13,10 @@ router.post('/signin', async (req, res) => {
     console.log(error);
     res.status(500).json({ message: error });
   }
+});
+
+router.post('/upload-file', upload.single('file'), (req, res) => {
+  console.log(req);
+  res.status(200).json({ message: 'okkkk' });
 });
 module.exports = router;
