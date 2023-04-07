@@ -10,6 +10,27 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  data: {
+    type: [{
+      originalname: {
+        type: String,
+        required: true,
+      },
+      mimetype: {
+        type: String,
+        required: true,
+      },
+      size: {
+        type: Number,
+        required: true,
+      },
+      key: {
+        type: String,
+        required: true,
+      },
+    }],
+    default: [],
+  },
 
 });
 

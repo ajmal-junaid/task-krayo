@@ -3,13 +3,13 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
 require('dotenv').config();
+const userRoutes = require('./routes/user');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cors());
-const userRoutes = require('./routes/user');
 
 app.use('/', userRoutes);
 

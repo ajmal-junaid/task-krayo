@@ -9,11 +9,25 @@ module.exports = {
       audience: clientId,
     });
     const payload = ticket.getPayload();
-    console.log(payload);
     const user = await User.findOne({ email: payload.email });
     if (user) return user._id;
     const result = await User.create({ name: payload.name, email: payload.email });
-    // const userid = payload.sub;
     return result._id;
+  },
+  addFile: async (data) => {
+    try {
+      const result = await User.updateOne({ _id: data.user }, { $push: { data } });
+      return result;
+    } catch (error) {
+      return error;
+    }
+  },
+  getAllFiles: async (id) => {
+    try {
+      const result = await User.findOne({ email: id }).select('data');
+      return result.data;
+    } catch (error) {
+      return error;
+    }
   },
 };
