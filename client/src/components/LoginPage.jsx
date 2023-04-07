@@ -4,14 +4,17 @@ import Swal from "sweetalert2";
 import instance from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
+const LoginPage = ({setUser,setProvider}) => {
   const navigate = useNavigate()
   const handleLogin = (provider) => {
+    setProvider(provider)
     instance.post("/signin", provider).then((res) => {
+      setUser(res.data.data)
       navigate('/home')
     })
       .catch((err)=>{
       console.log("err",err);
+      setProvider("")
     })
   };
   return (
@@ -28,10 +31,12 @@ const LoginPage = () => {
           <GoogleLogin
             onSuccess={(credentialResponse) => {
               handleLogin(credentialResponse);
-              new Swal("success", "login success", "success");
+              new Swal("success", "Login successfull", "success");
             }}
             onError={() => {
               console.log("Login Failed");
+              new Swal("", "Login failed", "error");
+
             }}
           />
         </div>
