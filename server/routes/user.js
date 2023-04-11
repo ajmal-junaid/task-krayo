@@ -1,10 +1,8 @@
 const express = require('express');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const { verify, addFile, getAllFiles } = require('../controllers/user');
 const { upload } = require('../utils/multer');
 const { verifyToken } = require('../middlewares/authentication');
-const client = require('../utils/awsBucket');
+const { s3, GetObjectCommand } = require('../utils/awsBucket');
 
 const router = express.Router();
 
@@ -24,14 +22,15 @@ router.post('/upload-file', verifyToken, upload.single('file'), async (req, res)
     const {
       originalname, mimetype, size, key,
     } = req.file;
-    const { user } = req.body;
+    const user = req.token;
     if (!user) return res.status(403).json({ message: 'Login to continue' });
     const result = await addFile({
       originalname, mimetype, size, key, user,
     });
     return res.status(200).json({ message: 'file uploaded', data: result });
   } catch (error) {
-    return res.status(500).json({ message: 'error in file upload', data: error });
+    console.log(error);
+    return res.status(500).json({ message: 'error in file upload' });
   }
 });
 
@@ -43,19 +42,49 @@ router.get('/my-files', verifyToken, async (req, res) => {
     res.status(500).json({ message: error });
   }
 });
-
-router.post('/download-file', verifyToken, async (req, res) => {
+function getContentType(key) {
+  const ext = key.split('.').pop();
+  switch (ext) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'doc':
+      return 'application/msword';
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'xls':
+      return 'application/vnd.ms-excel';
+    case 'xlsx':
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    case 'ppt':
+      return 'application/vnd.ms-powerpoint';
+    case 'pptx':
+      return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    default:
+      return 'application/octet-stream';
+  }
+}
+router.get('/download-file/:key', verifyToken, async (req, res) => {
+  const { key } = req.params;
   try {
-    const { key, mimetype } = req.body;
-    const command = new GetObjectCommand({
+    const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
-      ResponseContentType: mimetype,
-    });
-    const url = await getSignedUrl(client, command, { expiresIn: 3600 });
-    res.status(200).json({ message: 'success', data: url });
+    };
+    const command = new GetObjectCommand(params);
+    const { Body } = await s3.send(command);
+    const contentType = getContentType(key);
+    res.setHeader('Content-Type', contentType);
+    Body.pipe(res);
   } catch (error) {
-    res.status(500).json({ message: error });
+    console.log(error);
+    res.status(500).send({ message: error });
   }
 });
 module.exports = router;

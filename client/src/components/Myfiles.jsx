@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import instance from "../utils/axios";
 import Swal from "sweetalert2";
 import {
@@ -10,25 +10,7 @@ import {
   FaFile,
 } from "react-icons/fa";
 
-const Myfiles = ({ fileList, provider, setFileList }) => {
-  const [download, setDownload] = useState("");
-  const headers = {
-    Authorization: `Bearer ${provider.credential} ${provider.clientId}`,
-    "Content-Type": "application/json",
-  };
-  useEffect(() => {
-    getDatas();
-  }, []);
-  const getDatas = () => {
-    instance
-      .get("/my-files", { headers })
-      .then((res) => {
-        setFileList(res.data.data);
-      })
-      .catch((err) => {
-        console.log("err", err);
-      });
-  };
+const Myfiles = ({ fileList }) => {
   const getFileIcon = (fileName) => {
     const ext = fileName.split(".").pop();
     switch (ext) {
@@ -51,19 +33,19 @@ const Myfiles = ({ fileList, provider, setFileList }) => {
   };
   const handleDownload = (type, key, ogName) => {
     instance
-      .post("/download-file", { mimetype: type, key: key }, { headers })
-      .then((res) => {
-        const url = res.data.data;
+      .get(`/download-file/${key}`, { responseType: "blob" })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", ogName);
+        link.setAttribute("download", key);
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove();
       })
       .catch((err) => {
-        setDownload("");
         console.log("err", err);
+        new Swal("Failed","download failed","error")
       });
   };
   return (
@@ -73,30 +55,31 @@ const Myfiles = ({ fileList, provider, setFileList }) => {
         Below are the files uploaded by the user.
       </p>
       <ul className="divide-y divide-gray-200">
-        {fileList && fileList.map((file, index) => (
-          <li
-            key={index}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-          >
-            <div className="flex items-center">
-              <span className="text-gray-800 mr-3">
-                {getFileIcon(file.originalname)}
-              </span>
-              <span className="text-gray-800">{file.originalname}</span>
-            </div>
-            <span className="text-gray-800">
-              {Math.round(file.size / 1024)} KB
-            </span>
-            <a
-              className="text-gray-500 hover:text-gray-800"
-              onClick={() =>
-                handleDownload(file.mimetype, file.key, file.originalname)
-              }
+        {fileList &&
+          fileList.map((file, index) => (
+            <li
+              key={index}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
             >
-              <FaDownload size={20} className="fill-current" />
-            </a>
-          </li>
-        ))}
+              <div className="flex items-center">
+                <span className="text-gray-800 mr-3">
+                  {getFileIcon(file.originalname)}
+                </span>
+                <span className="text-gray-800">{file.originalname}</span>
+              </div>
+              <span className="text-gray-800">
+                {Math.round(file.size / 1024)} KB
+              </span>
+              <a
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() =>
+                  handleDownload(file.mimetype, file.key, file.originalname)
+                }
+              >
+                <FaDownload size={20} className="fill-current" />
+              </a>
+            </li>
+          ))}
       </ul>
     </div>
   );

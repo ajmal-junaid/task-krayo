@@ -1,8 +1,9 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
-const PrivateUser = ({provider}) => {
-  return provider ? <Outlet /> : <Navigate to="/" />;
+const PrivateUser = () => {
+  const token = localStorage.getItem("userToken");
+  return token ? <Outlet /> : <Navigate to="/" />;
 };
 
 export default PrivateUser;
