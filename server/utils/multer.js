@@ -10,7 +10,6 @@ const storage = multerS3({
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const extension = file.mimetype.split('/')[1];
     const fileName = `${file.fieldname}-${uniqueSuffix}.${extension}`;
-    console.log(fileName);
     cb(null, fileName);
   },
 });

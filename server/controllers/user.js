@@ -16,7 +16,7 @@ module.exports = {
   },
   addFile: async (data) => {
     try {
-      const result = await User.updateOne({ _id: data.user }, { $push: { data } });
+      const result = await User.updateOne({ email: data.user }, { $push: { data } });
       return result;
     } catch (error) {
       return error;

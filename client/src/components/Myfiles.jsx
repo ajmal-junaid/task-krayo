@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import instance from "../utils/axios";
 import Swal from "sweetalert2";
 import {
@@ -10,25 +10,8 @@ import {
   FaFile,
 } from "react-icons/fa";
 
-const Myfiles = ({ fileList, provider, setFileList }) => {
+const Myfiles = ({ fileList }) => {
   const [download, setDownload] = useState("");
-  const headers = {
-    Authorization: `Bearer ${provider.credential} ${provider.clientId}`,
-    "Content-Type": "application/json",
-  };
-  useEffect(() => {
-    getDatas();
-  }, []);
-  const getDatas = () => {
-    instance
-      .get("/my-files", { headers })
-      .then((res) => {
-        setFileList(res.data.data);
-      })
-      .catch((err) => {
-        console.log("err", err);
-      });
-  };
   const getFileIcon = (fileName) => {
     const ext = fileName.split(".").pop();
     switch (ext) {

@@ -22,7 +22,7 @@ function App() {
                 <LoginPage setUser={setUser} setProvider={setProvider} />
               }
             />
-            <Route element={<PrivateUser provider={provider} />}>
+            <Route element={<PrivateUser/>}>
               <Route
                 exact
                 path="home"
