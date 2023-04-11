@@ -1,14 +1,8 @@
 const express = require('express');
-// const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { GetObjectCommand } = require('@aws-sdk/client-s3');
-const circularJson = require('circular-json');
 const { verify, addFile, getAllFiles } = require('../controllers/user');
 const { upload } = require('../utils/multer');
 const { verifyToken } = require('../middlewares/authentication');
-const { s3 } = require('../utils/awsBucket');
-const fs = require("fs");
-const path = require("path");
-//const { s3, getObject } = require('../utils/awsBucket');
+const { s3, GetObjectCommand } = require('../utils/awsBucket');
 
 const router = express.Router();
 
@@ -48,42 +42,46 @@ router.get('/my-files', verifyToken, async (req, res) => {
     res.status(500).json({ message: error });
   }
 });
-
+function getContentType(key) {
+  const ext = key.split('.').pop();
+  switch (ext) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'doc':
+      return 'application/msword';
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'xls':
+      return 'application/vnd.ms-excel';
+    case 'xlsx':
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    case 'ppt':
+      return 'application/vnd.ms-powerpoint';
+    case 'pptx':
+      return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    default:
+      return 'application/octet-stream';
+  }
+}
 router.get('/download-file/:key', verifyToken, async (req, res) => {
   const { key } = req.params;
   try {
-    // const command = new GetObjectCommand({
-    //   Bucket: process.env.AWS_S3_BUCKET_NAME,
-    //   Key: key,
-    //   ResponseContentType: mimetype,
-    // });
-    // const url = await getSignedUrl(client, command, { expiresIn: 600 });
-    // console.log(url, ' dont look');
-    // streaming file//
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
     };
-    // const s3Stream = getObject(s3, params).createReadStream();
-    // res.setHeader('Content-Type', 'application/octet-stream');
-    // res.setHeader('Content-Disposition', `attachment; filename=${key}`);
-    // s3Stream.pipe(res);
     const command = new GetObjectCommand(params);
     const { Body } = await s3.send(command);
-    // const json = circularJson.stringify(Body);
-    // console.log(json, "opopo");
-    // res.send(json);
-    // res.status(200).json({ message: 'success', data: url });
-    // res.setHeader("Content-Type", "application/json");
-    // res.setHeader("Content-Disposition", `attachment; filename=${key}`);
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${path.basename(key)}`
-    );
-    res.setHeader("Content-Type", "image/png");
-    // Send the S3 object content as the response
-    const json = circularJson.stringify(Body);
-    res.send(json);
+    const contentType = getContentType(key);
+    res.setHeader('Content-Type', contentType);
+    Body.pipe(res);
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: error });

@@ -10,5 +10,14 @@ const instance = axios.create({
         )}`
     }
 });
+instance.interceptors.request.use((config) => {
+    const userToken = JSON.parse(localStorage.getItem('userToken'));
+    if (userToken) {
+      config.headers.authorization = `Bearer ${userToken}`;
+    }
+    return config;
+  }, (error) => {
+    return Promise.reject(error);
+  });
 
 export default instance;

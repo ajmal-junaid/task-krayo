@@ -9,10 +9,8 @@ import {
   FaDownload,
   FaFile,
 } from "react-icons/fa";
-import axios from "axios";
 
 const Myfiles = ({ fileList }) => {
-  const [download, setDownload] = useState("");
   const getFileIcon = (fileName) => {
     const ext = fileName.split(".").pop();
     switch (ext) {
@@ -34,18 +32,8 @@ const Myfiles = ({ fileList }) => {
     }
   };
   const handleDownload = (type, key, ogName) => {
-    // instance
-    //   .get(`/download-file/${key}`, { responseType: "blob" })
-    axios
-      .get(`http://localhost:3000/download-file/${key}`, {
-        headers: {
-          authorization: `bearer ${JSON.parse(
-            localStorage.getItem("userToken")
-          )}`,
-          responseType: 'blob',
-        },
-        responseType: 'blob',
-      })
+    instance
+      .get(`/download-file/${key}`, { responseType: "blob" })
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
@@ -56,8 +44,8 @@ const Myfiles = ({ fileList }) => {
         link.remove();
       })
       .catch((err) => {
-        setDownload("");
         console.log("err", err);
+        new Swal("Failed","download failed","error")
       });
   };
   return (
