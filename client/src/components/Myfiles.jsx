@@ -9,6 +9,7 @@ import {
   FaDownload,
   FaFile,
 } from "react-icons/fa";
+import axios from "axios";
 
 const Myfiles = ({ fileList }) => {
   const [download, setDownload] = useState("");
@@ -33,16 +34,26 @@ const Myfiles = ({ fileList }) => {
     }
   };
   const handleDownload = (type, key, ogName) => {
-    instance
-      .post("/download-file", { mimetype: type, key: key }, { headers })
-      .then((res) => {
-        const url = res.data.data;
+    // instance
+    //   .get(`/download-file/${key}`, { responseType: "blob" })
+    axios
+      .get(`http://localhost:3000/download-file/${key}`, {
+        headers: {
+          authorization: `bearer ${JSON.parse(
+            localStorage.getItem("userToken")
+          )}`,
+          responseType: 'blob',
+        },
+        responseType: 'blob',
+      })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", ogName);
+        link.setAttribute("download", key);
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove();
       })
       .catch((err) => {
         setDownload("");
@@ -56,30 +67,31 @@ const Myfiles = ({ fileList }) => {
         Below are the files uploaded by the user.
       </p>
       <ul className="divide-y divide-gray-200">
-        {fileList && fileList.map((file, index) => (
-          <li
-            key={index}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-          >
-            <div className="flex items-center">
-              <span className="text-gray-800 mr-3">
-                {getFileIcon(file.originalname)}
-              </span>
-              <span className="text-gray-800">{file.originalname}</span>
-            </div>
-            <span className="text-gray-800">
-              {Math.round(file.size / 1024)} KB
-            </span>
-            <a
-              className="text-gray-500 hover:text-gray-800"
-              onClick={() =>
-                handleDownload(file.mimetype, file.key, file.originalname)
-              }
+        {fileList &&
+          fileList.map((file, index) => (
+            <li
+              key={index}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
             >
-              <FaDownload size={20} className="fill-current" />
-            </a>
-          </li>
-        ))}
+              <div className="flex items-center">
+                <span className="text-gray-800 mr-3">
+                  {getFileIcon(file.originalname)}
+                </span>
+                <span className="text-gray-800">{file.originalname}</span>
+              </div>
+              <span className="text-gray-800">
+                {Math.round(file.size / 1024)} KB
+              </span>
+              <a
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() =>
+                  handleDownload(file.mimetype, file.key, file.originalname)
+                }
+              >
+                <FaDownload size={20} className="fill-current" />
+              </a>
+            </li>
+          ))}
       </ul>
     </div>
   );

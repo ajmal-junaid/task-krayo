@@ -1,10 +1,14 @@
 const express = require('express');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+// const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
+const circularJson = require('circular-json');
 const { verify, addFile, getAllFiles } = require('../controllers/user');
 const { upload } = require('../utils/multer');
 const { verifyToken } = require('../middlewares/authentication');
-const client = require('../utils/awsBucket');
+const { s3 } = require('../utils/awsBucket');
+const fs = require("fs");
+const path = require("path");
+//const { s3, getObject } = require('../utils/awsBucket');
 
 const router = express.Router();
 
@@ -45,19 +49,44 @@ router.get('/my-files', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/download-file', verifyToken, async (req, res) => {
+router.get('/download-file/:key', verifyToken, async (req, res) => {
+  const { key } = req.params;
   try {
-    const { key, mimetype } = req.body;
-    console.log(key);
-    const command = new GetObjectCommand({
+    // const command = new GetObjectCommand({
+    //   Bucket: process.env.AWS_S3_BUCKET_NAME,
+    //   Key: key,
+    //   ResponseContentType: mimetype,
+    // });
+    // const url = await getSignedUrl(client, command, { expiresIn: 600 });
+    // console.log(url, ' dont look');
+    // streaming file//
+    const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
-      ResponseContentType: mimetype,
-    });
-    const url = await getSignedUrl(client, command, { expiresIn: 600 });
-    res.status(200).json({ message: 'success', data: url });
+    };
+    // const s3Stream = getObject(s3, params).createReadStream();
+    // res.setHeader('Content-Type', 'application/octet-stream');
+    // res.setHeader('Content-Disposition', `attachment; filename=${key}`);
+    // s3Stream.pipe(res);
+    const command = new GetObjectCommand(params);
+    const { Body } = await s3.send(command);
+    // const json = circularJson.stringify(Body);
+    // console.log(json, "opopo");
+    // res.send(json);
+    // res.status(200).json({ message: 'success', data: url });
+    // res.setHeader("Content-Type", "application/json");
+    // res.setHeader("Content-Disposition", `attachment; filename=${key}`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${path.basename(key)}`
+    );
+    res.setHeader("Content-Type", "image/png");
+    // Send the S3 object content as the response
+    const json = circularJson.stringify(Body);
+    res.send(json);
   } catch (error) {
-    res.status(500).json({ message: error });
+    console.log(error);
+    res.status(500).send({ message: error });
   }
 });
 module.exports = router;
