@@ -26,10 +26,10 @@ router.post('/upload-file', verifyToken, upload.single('file'), async (req, res)
     } = req.file;
     const user = req.token;
     if (!user) return res.status(403).json({ message: 'Login to continue' });
-    await addFile({
+    const result = await addFile({
       originalname, mimetype, size, key, user,
     });
-    return res.status(200).json({ message: 'file uploaded' });
+    return res.status(200).json({ message: 'file uploaded', data: result });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: 'error in file upload' });
