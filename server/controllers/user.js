@@ -30,4 +30,13 @@ module.exports = {
       return error;
     }
   },
+  checkAuth: async (user, key) => {
+    try {
+      const Auth = await User.findOne({ email: user, 'data.key': key });
+      if (!Auth) return false;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
 };

@@ -1,5 +1,7 @@
 const express = require('express');
-const { verify, addFile, getAllFiles } = require('../controllers/user');
+const {
+  verify, addFile, getAllFiles, checkAuth,
+} = require('../controllers/user');
 const { upload } = require('../utils/multer');
 const { verifyToken } = require('../middlewares/authentication');
 const { s3, GetObjectCommand } = require('../utils/awsBucket');
@@ -72,7 +74,11 @@ function getContentType(key) {
 }
 router.get('/download-file/:key', verifyToken, async (req, res) => {
   const { key } = req.params;
+  const user = req.token;
   try {
+    if (!user) return res.status(403).json({ message: 'Login to continue' });
+    const result = await checkAuth(user, key);
+    if (!result) return res.status(401).json({ message: 'Unauthorized' });
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
